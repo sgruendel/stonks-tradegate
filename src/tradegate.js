@@ -48,6 +48,8 @@ exports.info = async(isin) => {
     info.ask = normalizeNumber(info.ask);
     info.delta = normalizeNumber(info.delta);
     info.last = normalizeNumber(info.last);
+    info.high = normalizeNumber(info.high);
+    info.low = normalizeNumber(info.low);
     return info;
 };
 
