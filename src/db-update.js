@@ -23,9 +23,14 @@ const ustop = require('./ustop.json');
 async function update(isin) {
     let allPromises = [];
     let lastId;
+    let retry = 0;
     while (true) {
         try {
             const transactions = await tradegate.transactions(isin, lastId);
+            if (retry > 0) {
+                logger.info('retry ' + retry + ': successful for ' + isin);
+                retry = 0;
+            }
             if (transactions.length === 0) {
                 break;
             }
@@ -35,8 +40,8 @@ async function update(isin) {
                 lastId = t.id;
             });
         } catch (err) {
-            logger.error('error getting transactions for ' + isin, err);
-            await new Promise(resolve => setTimeout(resolve, 300));
+            logger.error('try ' + ++retry + ': error getting transactions for ' + isin, err);
+            await new Promise(resolve => setTimeout(resolve, 3000));
         }
     }
 
