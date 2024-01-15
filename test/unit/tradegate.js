@@ -1,12 +1,10 @@
-'use strict';
+import { expect } from 'chai';
 
-const expect = require('chai').expect;
-
-const tradegate = require('../../src/tradegate');
+import * as tradegate from '../../src/tradegate.js';
 
 describe('tradegate', () => {
     describe('#info()', () => {
-        it('should work for MBG', async() => {
+        it('should work for MBG', async () => {
             const result = await tradegate.info('DE0007100000');
             expect(result.bid).to.be.a('number');
             expect(result.ask).to.be.a('number');
@@ -25,7 +23,7 @@ describe('tradegate', () => {
     });
 
     describe('#transactions()', () => {
-        it('should work for Adyen', async() => {
+        it('should work for Adyen', async () => {
             const result = await tradegate.transactions('NL0012969182');
             expect(result).to.be.an('array');
             expect(result[1].id).to.be.a('number');
@@ -36,7 +34,7 @@ describe('tradegate', () => {
             expect(result[1].time).to.be.a('string');
         });
 
-        it('should work give empty array for id > max', async() => {
+        it('should work give empty array for id > max', async () => {
             const result = await tradegate.transactions('NL0012969182', 99999999);
             expect(result).to.be.an('array');
             expect(result).to.be.empty;

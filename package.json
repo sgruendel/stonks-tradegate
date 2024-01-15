@@ -1,68 +1,71 @@
 {
-  "name": "stonks-tradegate",
-  "version": "1.0.0",
-  "description": "Stocks and Technical Indicators using Tradegate Exchange",
-  "main": "index.js",
-  "scripts": {
-    "test:unit": "nyc --reporter=lcov --reporter=text mocha test/unit/*",
-    "test:integration": "mocha test/integration/*",
-    "test": "npm run test:unit"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/sgruendel/stonks-tradegate.git"
-  },
-  "keywords": [
-    "stocks",
-    "tradegate",
-    "tradegatexchange"
-  ],
-  "author": "Stefan Gründel",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/sgruendel/stonks-tradegate/issues"
-  },
-  "homepage": "https://github.com/sgruendel/stonks-tradegate#readme",
-  "dependencies": {
-    "moment": "^2.30.1",
-    "mongoose": "^8.0.4",
-    "node-fetch": "^2.7.0",
-    "trading-signals": "^3.6.1",
-    "winston": "^3.11.0"
-  },
-  "devDependencies": {
-    "chai": "^4.4.1",
-    "eslint": "^8.56.0",
-    "eslint-config-strongloop": "^2.1.0",
-    "mocha": "^10.2.0",
-    "nyc": "^15.1.0"
-  },
-  "eslintConfig": {
-    "parserOptions": {
-      "ecmaVersion": 2017
+    "name": "stonks-tradegate",
+    "version": "1.0.0",
+    "description": "Stocks and Technical Indicators using Tradegate Exchange",
+    "main": "index.js",
+    "type": "module",
+    "scripts": {
+        "test:unit": "nyc --reporter=lcov --reporter=text mocha test/unit/*",
+        "test:integration": "mocha test/integration/*",
+        "test": "npm run test:unit"
     },
-    "extends": "strongloop",
-    "env": {
-      "es6": true,
-      "node": true,
-      "mocha": true
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/sgruendel/stonks-tradegate.git"
     },
-    "rules": {
-      "indent": [
-        "error",
-        4
-      ],
-      "max-len": [
-        "error",
-        120,
-        4,
-        {
-          "ignoreComments": true,
-          "ignoreUrls": true,
-          "ignoreStrings": true,
-          "ignorePattern": "^\\s*var\\s.+=\\s*(require\\s*\\()|(/)"
+    "keywords": [
+        "stocks",
+        "tradegate",
+        "tradegateexchange"
+    ],
+    "author": "Stefan Gründel",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/sgruendel/stonks-tradegate/issues"
+    },
+    "homepage": "https://github.com/sgruendel/stonks-tradegate#readme",
+    "dependencies": {
+        "moment": "^2.30.1",
+        "mongoose": "^8.0.4",
+        "node-fetch": "^3.3.2",
+        "p-map": "^7.0.1",
+        "trading-signals": "^4.0.0",
+        "winston": "^3.11.0"
+    },
+    "devDependencies": {
+        "chai": "^5.0.0",
+        "eslint": "^8.56.0",
+        "eslint-config-strongloop": "^2.1.0",
+        "mocha": "^10.2.0",
+        "nyc": "^15.1.0"
+    },
+    "eslintConfig": {
+        "parserOptions": {
+            "ecmaVersion": 2023,
+            "sourceType": "module"
+        },
+        "extends": "strongloop",
+        "env": {
+            "es2023": true,
+            "node": true,
+            "mocha": true
+        },
+        "rules": {
+            "indent": [
+                "error",
+                4
+            ],
+            "max-len": [
+                "error",
+                120,
+                4,
+                {
+                    "ignoreComments": true,
+                    "ignoreUrls": true,
+                    "ignoreStrings": true,
+                    "ignorePattern": "^\\s*var\\s.+=\\s*(require\\s*\\()|(/)"
+                }
+            ]
         }
-      ]
     }
-  }
 }

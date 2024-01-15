@@ -1,10 +1,8 @@
-'use strict';
-
-const fetch = require('node-fetch');
-const http = require('http');
-const https = require('https');
-const querystring = require('querystring');
-const winston = require('winston');
+import fetch from 'node-fetch';
+import http from 'http';
+import https from 'https';
+import querystring from 'querystring';
+import winston from 'winston';
 
 const logger = winston.createLogger({
     level: process.env.LOG_LEVEL || 'info',
@@ -23,21 +21,22 @@ const httpsAgent = new https.Agent({
     keepAlive: true,
 });
 const options = {
-    headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36' },
-    agent: _parsedURL => {
-        return (_parsedURL.protocol === 'http:') ? httpAgent : httpsAgent;
+    headers: {
+        'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    },
+    agent: (_parsedURL) => {
+        return _parsedURL.protocol === 'http:' ? httpAgent : httpsAgent;
     },
 };
 
 const BASE_URL = 'https://www.tradegate.de/';
 
-var exports = module.exports = {};
-
 function normalizeNumber(n) {
-    return (typeof n === 'number') ? n : Number(n.replace(',', '.').replace(' ', ''));
+    return typeof n === 'number' ? n : Number(n.replace(',', '.').replace(' ', ''));
 }
 
-exports.info = async(isin) => {
+export async function info(isin) {
     const qs = {
         isin: isin,
     };
@@ -51,9 +50,9 @@ exports.info = async(isin) => {
     info.high = normalizeNumber(info.high);
     info.low = normalizeNumber(info.low);
     return info;
-};
+}
 
-exports.transactions = async(isin, id) => {
+export async function transactions(isin, id) {
     const qs = {
         isin: isin,
     };
@@ -64,7 +63,7 @@ exports.transactions = async(isin, id) => {
     const response = await fetch(BASE_URL + 'umsaetze.php?' + querystring.stringify(qs), options);
     let transactions = [];
     if (response.headers.get('content-length') !== '0') {
-        (await response.json()).forEach(t => {
+        (await response.json()).forEach((t) => {
             if (t.date) {
                 t.price = normalizeNumber(t.price);
                 transactions[t.id] = t;
@@ -72,4 +71,4 @@ exports.transactions = async(isin, id) => {
         });
     }
     return transactions;
-};
+}
