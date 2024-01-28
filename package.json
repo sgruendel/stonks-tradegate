@@ -46,7 +46,7 @@
         },
         "extends": "strongloop",
         "env": {
-            "es2023": true,
+            "es6": true,
             "node": true,
             "mocha": true
         },

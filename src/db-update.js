@@ -15,13 +15,37 @@ const logger = winston.createLogger({
 import * as db from './db.js';
 import * as tradegate from './tradegate.js';
 
+/** @type {Object.<string, string>} */
+// @ts-ignore
 const dax = JSON.parse(fs.readFileSync('src/dax.json'));
+
+/** @type {Object.<string, string>} */
+// @ts-ignore
 const eurostoxx50 = JSON.parse(fs.readFileSync('src/eurostoxx50.json'));
+
+/** @type {Object.<string, string>} */
+// @ts-ignore
 const ustop = JSON.parse(fs.readFileSync('src/ustop.json'));
 
+/**
+ * The function `update` retrieves transactions for a given ISIN code from a source called `tradegate`,
+ * and updates the database with the retrieved transactions.
+ * @param {string} isin - The `isin` parameter is a unique identifier for a financial instrument. It stands for
+ * International Securities Identification Number and is used to uniquely identify securities such as
+ * stocks, bonds, and options. In the context of the `update` function, it is used to fetch
+ * transactions for a specific financial instrument from the
+ * @returns The function `update` returns a promise that resolves to an array of results from updating
+ * transactions in the database.
+ */
 async function update(isin) {
+    logger.debug('updating ' + isin);
+
+    /** @type {Promise[]} */
     let allPromises = [];
+
+    /** @type {number} */
     let lastId;
+
     let retry = 0;
     while (true) {
         try {
@@ -49,19 +73,16 @@ async function update(isin) {
     return Promise.all(allPromises);
 }
 
-async function updateAll(isins) {
-    let allPromises = [];
-    for (const isin in isins) {
-        allPromises.push(update(isin));
-    }
+/** @type Set<string> */
+const uniqueIsinsSet = new Set();
 
-    return Promise.all(allPromises);
-}
-
-const indexes = [dax, eurostoxx50, ustop];
+Object.keys(dax).forEach(isin => uniqueIsinsSet.add(isin));
+Object.keys(eurostoxx50).forEach(isin => uniqueIsinsSet.add(isin));
+Object.keys(ustop).forEach(isin => uniqueIsinsSet.add(isin));
+const isins = [...uniqueIsinsSet];
 
 logger.info('updating indexes ...');
-pMap(indexes, updateAll, { concurrency: 1, stopOnError: false }).then(() => {
+pMap(isins, update, { concurrency: 5, stopOnError: false }).then(() => {
     logger.info('done, waiting to finish ...');
     db.disconnect();
 });
