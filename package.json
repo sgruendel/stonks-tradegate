@@ -65,7 +65,8 @@
                     "ignoreStrings": true,
                     "ignorePattern": "^\\s*var\\s.+=\\s*(require\\s*\\()|(/)"
                 }
-            ]
+            ],
+            "space-before-function-paren": 0
         }
     }
 }
