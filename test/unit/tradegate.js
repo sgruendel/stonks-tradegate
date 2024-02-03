@@ -25,16 +25,17 @@ describe('tradegate', () => {
     describe('#transactions()', () => {
         it('should work for Adyen', async () => {
             const result = await tradegate.transactions('NL0012969182');
+            const firstId = Object.keys(result)[0];
             expect(result).to.be.an('array');
-            expect(result[1].id).to.be.a('number');
-            expect(result[1].price).to.be.a('number');
-            expect(result[1].price).to.be.not.NaN;
-            expect(result[1].umsatz).to.be.a('number');
-            expect(result[1].date).to.be.a('string');
-            expect(result[1].time).to.be.a('string');
+            expect(result[firstId].id).to.be.a('number');
+            expect(result[firstId].price).to.be.a('number');
+            expect(result[firstId].price).to.be.not.NaN;
+            expect(result[firstId].umsatz).to.be.a('number');
+            expect(result[firstId].date).to.be.a('string');
+            expect(result[firstId].time).to.be.a('string');
         });
 
-        it('should work give empty array for id > max', async () => {
+        it('should give empty array for id > max', async () => {
             const result = await tradegate.transactions('NL0012969182', 99999999);
             expect(result).to.be.an('array');
             expect(result).to.be.empty;
