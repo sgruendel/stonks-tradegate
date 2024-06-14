@@ -29,7 +29,7 @@
         "mongoose": "^8.4.1",
         "node-fetch": "^3.3.2",
         "p-map": "^7.0.2",
-        "trading-signals": "^4.0.0",
+        "trading-signals": "^5.0.4",
         "winston": "^3.13.0"
     },
     "devDependencies": {
