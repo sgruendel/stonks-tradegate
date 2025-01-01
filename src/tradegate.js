@@ -145,7 +145,7 @@ export async function info(isin) {
  * Gets transaction data for the provided ISIN, starting at optional transaction ID.
  * @param {string} isin International Securities Identification Number (ISIN) to get transactions for
  * @param {number} [id] optional transaction ID to start at
- * @returns an array of transactions
+ * @returns {Promise<TradegateTransaction[]>} an array of transactions
  */
 export async function transactions(isin, id) {
     const qs = {
