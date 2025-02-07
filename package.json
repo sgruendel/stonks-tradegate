@@ -26,7 +26,7 @@
     },
     "dependencies": {
         "moment": "^2.30.1",
-        "mongoose": "^8.9.5",
+        "mongoose": "^8.10.0",
         "node-fetch": "^3.3.2",
         "p-map": "^7.0.3",
         "trading-signals": "^6.0.1",
