@@ -29,8 +29,7 @@ describe('tradegate', () => {
             const firstId = Object.keys(result)[0];
             expect(result).to.be.an('array');
             expect(result[firstId].id).to.be.a('number');
-            expect(result[firstId].price).to.be.a('number');
-            expect(result[firstId].price).to.be.not.NaN;
+            expect(result[firstId].price).to.be.a('number').and.not.NaN;
             expect(result[firstId].umsatz).to.be.a('number');
             expect(result[firstId].date).to.be.a('string');
             expect(result[firstId].time).to.be.a('string');
