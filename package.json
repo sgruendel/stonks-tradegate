@@ -26,10 +26,10 @@
     },
     "dependencies": {
         "moment": "^2.30.1",
-        "mongoose": "^9.0.2",
+        "mongoose": "^9.1.1",
         "node-fetch": "^3.3.2",
         "p-map": "^7.0.4",
-        "trading-signals": "^7.2.0",
+        "trading-signals": "^7.4.2",
         "winston": "^3.19.0"
     },
     "devDependencies": {
