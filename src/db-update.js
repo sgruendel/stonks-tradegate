@@ -15,32 +15,28 @@ const logger = winston.createLogger({
 import * as db from './db.js';
 import * as tradegate from './tradegate.js';
 
-/** @type {Object.<string, string>} */
-// @ts-ignore
-const dax = JSON.parse(fs.readFileSync('src/dax.json'));
+/** @typedef {import('./types.js').Issuer} Issuer */
 
-/** @type {Object.<string, string>} */
-// @ts-ignore
-const eurostoxx50 = JSON.parse(fs.readFileSync('src/eurostoxx50.json'));
+/** @type {Issuer[]} */
+const DAX_ISSUERS = JSON.parse(fs.readFileSync('src/dax.json', 'utf8'));
 
-/** @type {Object.<string, string>} */
-// @ts-ignore
-const ustop = JSON.parse(fs.readFileSync('src/ustop.json'));
+/** @type {Issuer[]} */
+const EUROSTOXX50_ISSUERS = JSON.parse(fs.readFileSync('src/eurostoxx50.json', 'utf8'));
+
+/** @type {Issuer[]} */
+const USTOP_ISSUERS = JSON.parse(fs.readFileSync('src/ustop.json', 'utf8'));
 
 /**
- * The function `update` retrieves transactions for a given ISIN code from a source called `tradegate`,
- * and updates the database with the retrieved transactions.
- * @param {string} isin - The `isin` parameter is a unique identifier for a financial instrument. It stands for
- * International Securities Identification Number and is used to uniquely identify securities such as
- * stocks, bonds, and options. In the context of the `update` function, it is used to fetch
- * transactions for a specific financial instrument from the
- * @returns The function `update` returns a promise that resolves to an array of results from updating
- * transactions in the database.
+ * Update transactions for a given ISIN.  Reads all transactions of today until
+ * now from tradegate and updates the database.
+ * 
+ * @param {string} isin 
+ * @returns {Promise<any[]>} 
  */
 async function update(isin) {
     logger.debug('updating ' + isin);
 
-    /** @type {Promise[]} */
+    /** @type {Promise<any>[]} */
     let allPromises = [];
 
     /** @type {number} */
@@ -57,7 +53,7 @@ async function update(isin) {
             if (transactions.length === 0) {
                 break;
             }
-            transactions.map((t) => {
+            transactions.forEach((t) => {
                 allPromises.push(
                     db.Transactions.updateOne({ isin: isin, date: t.date, id: t.id }, t, { upsert: true }),
                 );
@@ -76,13 +72,13 @@ async function update(isin) {
 /** @type Set<string> */
 const uniqueIsinsSet = new Set();
 
-Object.keys(dax).forEach(isin => uniqueIsinsSet.add(isin));
-Object.keys(eurostoxx50).forEach(isin => uniqueIsinsSet.add(isin));
-Object.keys(ustop).forEach(isin => uniqueIsinsSet.add(isin));
+DAX_ISSUERS.forEach((i) => uniqueIsinsSet.add(i.isin));
+EUROSTOXX50_ISSUERS.forEach((i) => uniqueIsinsSet.add(i.isin));
+USTOP_ISSUERS.forEach((i) => uniqueIsinsSet.add(i.isin));
 const isins = [...uniqueIsinsSet];
 
 logger.info('updating indexes ...');
-pMap(isins, update, { concurrency: 5, stopOnError: false }).then(() => {
+pMap(isins, update, { concurrency: 4, stopOnError: false }).then(() => {
     logger.info('done, waiting to finish ...');
     db.disconnect();
 });
