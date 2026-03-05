@@ -1,10 +1,13 @@
 import moment from 'moment';
-import { EMA, RSI } from 'trading-signals';
+import { ATR, EMA, RSI } from 'trading-signals';
 
 import { Transactions, disconnect } from './db.js';
 
 const DATE_FORMAT = 'YYYY-MM-DD';
 const TRANSACTION_DATE_TIME_FORMAT = '%Y-%m-%d %H:%M:%S.%L';
+const ATR_PERIOD = 14;
+const MIN_BUY = 500;
+const MAX_BUY = 1000;
 
 /**
  * @typedef {object} Candle Trading candle
@@ -50,7 +53,7 @@ const TRANSACTION_DATE_TIME_FORMAT = '%Y-%m-%d %H:%M:%S.%L';
  */
 const usage = () => {
     console.log('Usage: node src/backtest-cli.js --isin <ISIN[,ISIN]> --from YYYY-MM-DD --to YYYY-MM-DD');
-    console.log('       --intervals 5,15,60 --strategy ema-cross|rsi-reversion');
+    console.log('       --intervals 5,15,60 --strategy ema-cross|rsi-reversion|macd-slc|macd-zlc');
 };
 
 /**
@@ -147,8 +150,13 @@ const candlePipeline = (isin, fromDate, toDate, intervalMinutes) => {
  * @returns {BacktestResult}
  */
 const runBacktest = (candles, signalFn) => {
+    const atr = new ATR(ATR_PERIOD);
     /** @type {number|null} */
     let position = null;
+    /** @type {number} */
+    let shares = 0;
+    /** @type {number|null} */
+    let stopLoss = null;
     let trades = 0;
     let wins = 0;
     let losses = 0;
@@ -156,33 +164,55 @@ const runBacktest = (candles, signalFn) => {
 
     // Iterate over all candles
     candles.forEach((candle) => {
-        const signal = signalFn(candle);
-        console.log(
-            `Candle ${candle.time.toISOString()} (${candle.open}, ${candle.high}, ${candle.low}, ${candle.close}, ${candle.volume}): signal=${signal}, position=${position}`,
-        );
-        if (signal === 'buy' && position === null) {
-            position = candle.close;
-            trades += 1;
-            console.log(`  Entered position at ${position}`);
-            return;
+        const atrValue = atr.add({ high: candle.high, low: candle.low, close: candle.close });
+
+        if (position !== null && stopLoss === null && atrValue !== null) {
+            stopLoss = position - 3 * atrValue;
         }
-        if (signal === 'sell' && position !== null) {
-            const tradePnL = candle.close - position;
+
+        if (position !== null && stopLoss !== null && candle.low <= stopLoss) {
+            const tradePnL = (stopLoss - position) * shares;
             pnl += tradePnL;
             if (tradePnL >= 0) {
                 wins += 1;
-                console.log(`  Exited position at ${candle.close} with profit ${tradePnL}`);
             } else {
-                console.log(`  Exited position at ${candle.close} with loss ${tradePnL}`);
                 losses += 1;
             }
             position = null;
+            shares = 0;
+            stopLoss = null;
+            return;
+        }
+
+        const signal = signalFn(candle);
+        // console.log( `Candle ${candle.time.toISOString()} (${candle.open}, ${candle.high}, ${candle.low}, ${candle.close}, ${candle.volume}): signal=${signal}, position=${position}`,);
+        if (signal === 'buy' && position === null) {
+            position = candle.close;
+            shares = Math.floor(MAX_BUY / candle.close);
+            trades += 1;
+            stopLoss = atrValue !== null ? position - 3 * atrValue : null;
+            // console.log(`  Entered position at ${position} with ${shares} shares`);
+            return;
+        }
+        if (signal === 'sell' && position !== null) {
+            const tradePnL = (candle.close - position) * shares;
+            pnl += tradePnL;
+            if (tradePnL >= 0) {
+                wins += 1;
+                // console.log(`  Exited position at ${candle.close} with profit ${tradePnL}`);
+            } else {
+                // console.log(`  Exited position at ${candle.close} with loss ${tradePnL}`);
+                losses += 1;
+            }
+            position = null;
+            shares = 0;
+            stopLoss = null;
         }
     });
 
     // Close any open position at last candle close price
     if (position !== null && candles.length > 0) {
-        const tradePnL = candles[candles.length - 1].close - position;
+        const tradePnL = (candles[candles.length - 1].close - position) * shares;
         pnl += tradePnL;
         if (tradePnL >= 0) {
             wins += 1;
@@ -214,14 +244,17 @@ const makeEmaCrossStrategy = () => {
         }
 
         const diff = fast.getResult() - slow.getResult();
-        const signal =
-            previousDiff === null
-                ? null
-                : diff > 0 && previousDiff <= 0
-                  ? 'buy'
-                  : diff < 0 && previousDiff >= 0
-                    ? 'sell'
-                    : null;
+        /** @type {Signal} */
+        let signal = null;
+
+        if (previousDiff !== null) {
+            if (diff > 0 && previousDiff <= 0) {
+                signal = 'buy';
+            } else if (diff < 0 && previousDiff >= 0) {
+                signal = 'sell';
+            }
+        }
+
         previousDiff = diff;
         return signal;
     };
@@ -251,10 +284,98 @@ const makeRsiReversionStrategy = () => {
     };
 };
 
+/**
+ * Create MACD signal line crossover strategy.
+ * @returns {SignalFn}
+ */
+const makeMacdSignalCrossStrategy = () => {
+    const fast = new EMA(12);
+    const slow = new EMA(26);
+    const signalEma = new EMA(9);
+    /** @type {number|null} */
+    let previousMacd = null;
+    /** @type {number|null} */
+    let previousSignal = null;
+
+    // @param {Candle} candle
+    return (candle) => {
+        fast.update(candle.close, false);
+        slow.update(candle.close, false);
+
+        if (!fast.isStable || !slow.isStable) {
+            return null;
+        }
+
+        const macd = fast.getResult() - slow.getResult();
+        signalEma.update(macd, false);
+        if (!signalEma.isStable) {
+            return null;
+        }
+
+        const signalLine = signalEma.getResult();
+        /** @type {Signal} */
+        let signal = null;
+
+        if (previousMacd !== null && previousSignal !== null) {
+            if (macd > signalLine && previousMacd <= previousSignal) {
+                if (macd < 0) {
+                    signal = 'buy';
+                }
+            } else if (macd < signalLine && previousMacd >= previousSignal) {
+                if (macd > 0) {
+                    signal = 'sell';
+                }
+            }
+        }
+
+        previousMacd = macd;
+        previousSignal = signalLine;
+        return signal;
+    };
+};
+
+/**
+ * Create MACD zero line crossover strategy.
+ * @returns {SignalFn}
+ */
+const makeMacdZeroCrossStrategy = () => {
+    const fast = new EMA(12);
+    const slow = new EMA(26);
+    /** @type {number|null} */
+    let previousMacd = null;
+
+    // @param {Candle} candle
+    return (candle) => {
+        fast.update(candle.close, false);
+        slow.update(candle.close, false);
+
+        if (!fast.isStable || !slow.isStable) {
+            return null;
+        }
+
+        const macd = fast.getResult() - slow.getResult();
+        /** @type {Signal} */
+        let signal = null;
+
+        if (previousMacd !== null) {
+            if (macd > 0 && previousMacd <= 0) {
+                signal = 'buy';
+            } else if (macd < 0 && previousMacd >= 0) {
+                signal = 'sell';
+            }
+        }
+
+        previousMacd = macd;
+        return signal;
+    };
+};
+
 /** @type {Record<string, () => SignalFn>} */
 const strategies = {
     'ema-cross': makeEmaCrossStrategy,
     'rsi-reversion': makeRsiReversionStrategy,
+    'macd-slc': makeMacdSignalCrossStrategy,
+    'macd-zlc': makeMacdZeroCrossStrategy,
 };
 
 const main = async () => {
@@ -262,7 +383,7 @@ const main = async () => {
     const fromDate = getArgValue('from', moment().subtract(2, 'years').format(DATE_FORMAT));
     const toDate = getArgValue('to', moment().format(DATE_FORMAT));
     const intervals = parseIntervals(getArgValue('intervals', '5,15,60'));
-    const strategyName = getArgValue('strategy', 'ema-cross');
+    const strategyName = getArgValue('strategy', 'macd-slc');
 
     if (isins.length === 0) {
         usage();

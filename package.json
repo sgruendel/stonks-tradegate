@@ -22,7 +22,8 @@
     "scripts": {
         "test": "npm run test:unit",
         "test:integration": "mocha test/integration/*",
-        "test:unit": "c8 --reporter=lcov --reporter=text mocha test/unit/*"
+        "test:unit": "c8 --reporter=lcov --reporter=text mocha test/unit/*",
+        "backtest": "node src/backtest-cli.js"
     },
     "dependencies": {
         "moment": "^2.30.1",
