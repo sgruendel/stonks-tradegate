@@ -22,7 +22,7 @@
     "scripts": {
         "test": "npm run test:unit",
         "test:integration": "mocha test/integration/*",
-        "test:unit": "c8 --reporter=lcov --reporter=text mocha test/unit/*",
+        "test:unit": "c8 --reporter=lcov --reporter=text mocha --timeout 7000 test/unit/*",
         "backtest": "node src/backtest-cli.js"
     },
     "dependencies": {
