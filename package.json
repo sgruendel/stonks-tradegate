@@ -27,18 +27,18 @@
     },
     "dependencies": {
         "moment": "^2.30.1",
-        "mongoose": "^9.9.1",
+        "mongoose": "^9.9.2",
         "node-fetch": "^3.3.2",
         "p-map": "^7.0.6",
-        "trading-signals": "^8.2.0",
+        "trading-signals": "^8.3.0",
         "winston": "^3.19.0"
     },
     "devDependencies": {
         "@eslint/js": "^10.0.1",
         "c8": "^12.0.0",
         "chai": "^6.2.2",
-        "eslint": "^10.8.0",
-        "globals": "^17.9.0",
+        "eslint": "^10.8.1",
+        "globals": "^17.11.0",
         "mocha": "^11.8.0"
     }
 }
