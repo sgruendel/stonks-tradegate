@@ -26,10 +26,10 @@
         "backtest": "node src/backtest-cli.js"
     },
     "dependencies": {
-        "moment": "^2.30.1",
-        "mongoose": "^9.9.5",
+        "moment": "^2.31.0",
+        "mongoose": "^9.10.1",
         "node-fetch": "^3.3.2",
-        "p-map": "^7.0.7",
+        "p-map": "^7.0.8",
         "trading-signals": "^8.3.0",
         "winston": "^3.19.0"
     },
@@ -39,6 +39,6 @@
         "chai": "^6.2.2",
         "eslint": "^10.10.0",
         "globals": "^17.12.0",
-        "mocha": "^12.0.0"
+        "mocha": "^12.0.1"
     }
 }
