@@ -27,9 +27,9 @@
     },
     "dependencies": {
         "moment": "^2.31.0",
-        "mongoose": "^9.11.1",
+        "mongoose": "^9.11.2",
         "node-fetch": "^3.3.2",
-        "p-map": "^7.0.8",
+        "p-map": "^7.1.1",
         "trading-signals": "^8.3.0",
         "winston": "^3.19.0"
     },
