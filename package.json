@@ -27,7 +27,7 @@
     },
     "dependencies": {
         "moment": "^2.31.0",
-        "mongoose": "^9.12.1",
+        "mongoose": "^9.12.2",
         "node-fetch": "^3.3.2",
         "p-map": "^7.1.1",
         "trading-signals": "^8.4.0",
@@ -37,7 +37,7 @@
         "@eslint/js": "^10.0.1",
         "c8": "^12.0.0",
         "chai": "^6.3.0",
-        "eslint": "^10.14.0",
+        "eslint": "^10.15.0",
         "globals": "^17.14.0",
         "mocha": "^12.0.3"
     }
